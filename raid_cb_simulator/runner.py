@@ -53,10 +53,20 @@ def simulate_wrapper(args):
 
 
 def run_configuration(speed_range, base_characters, demon_lord, turn_limit):
+    """
+    Run exhaustive search across all possible configurations
+    for a list of characters against a given boss.
+
+    Args:
+        speed_range (tuple[int, int]): Speed search space.
+        base_characters (list[Character]): Characters to test.
+        demon_lord (CharacterConfig): Boss configuration.
+        turn_limit (int): Maximum turns before forced stop.
+    """
+
     character_config_lists = [list(generate_character_configs(c, speed_range)) for c in base_characters]
     all_combinations = itertools.product(*character_config_lists)
 
-    max_turns = 0
     total = math.prod(len(cfgs) for cfgs in character_config_lists)
     with Pool(processes=cpu_count()) as pool:
         for turns, team in tqdm(
@@ -66,16 +76,6 @@ def run_configuration(speed_range, base_characters, demon_lord, turn_limit):
             ),
             total=total,
         ):
-            if turns > max_turns:
-                max_turns = turns
-                # print("\n=== New High Found ===")
-                # print(f"Turns: {max_turns}")
-                # for i, c in enumerate(team):
-                #     print(
-                #         f"\t{c.name}: speed={c.speed}, abilities={[a.ability.name for a in c.abilities]}, priorities={[a.priority for a in c.abilities]}, delays={[a.delay for a in c.abilities]}"
-                #     )
-                # print("======================")
-
             if turns == turn_limit:
                 print("\n!!! New Solution Found !!!")
                 print(f"Turns: {turns}")
@@ -87,56 +87,35 @@ def run_configuration(speed_range, base_characters, demon_lord, turn_limit):
 
 
 def run_variable_configs(speed_range, fixed_characters, variable_characters, demon_lord, turn_limit):
+    """
+    Run simulations varying only a subset of characters.
+
+    Args:
+        speed_range (tuple[int, int]): Speed search space.
+        fixed_characters (list[CharacterConfig]): Characters locked to a specific setup.
+        variable_characters (list[Character]): Characters to explore.
+        demon_lord (CharacterConfig): Boss configuration.
+        turn_limit (int): Maximum turns before forced stop.
+    """
+
     # Generate config sets for all variable chars
     variable_config_lists = [list(generate_character_configs(c, speed_range)) for c in variable_characters]
-
     all_combinations = itertools.product(*variable_config_lists)
-    total = math.prod(len(cfgs) for cfgs in variable_config_lists)
 
-    max_turns = 0
     with Pool(processes=cpu_count()) as pool:
-        # for turns, team in tqdm(
-        #     pool.imap_unordered(
-        #         simulate_wrapper,
-        #         ((fixed_characters + list(vars_), demon_lord) for vars_ in all_combinations),
-        #     ),
-        #     total=total,
-        # ):
         for turns, team in pool.imap_unordered(
             simulate_wrapper,
             ((fixed_characters + list(vars_), demon_lord) for vars_ in all_combinations),
         ):
-            var_speeds = [f"{c.name}: {c.speed}" for c in team]
-
-            if turns > max_turns:
-                max_turns = turns
-                # print("\n=== New High Found ===")
-                # print(f"Turns: {max_turns}, speeds: {var_speeds}")
-                # for i, c in enumerate(team):
-                #     print(
-                #         f"\t{c.name}: speed={c.speed}, "
-                #         f"abilities={[a.ability.name for a in c.abilities]}, "
-                #         f"priorities={[a.priority for a in c.abilities]}, "
-                #         f"delays={[a.delay for a in c.abilities]}"
-                #     )
-                # print("======================")
-
             if turns == turn_limit:
-                # print("\n!!! New Solution Found !!!")
+                var_speeds = [f"{c.name}: {c.speed}" for c in team]
                 print(f"Turns: {turns}, speeds: {var_speeds}")
-                # for i, c in enumerate(team):
-                #     print(
-                #         f"\t{c.name}: speed={c.speed}, "
-                #         f"abilities={[a.ability.name for a in c.abilities]}, "
-                #         f"priorities={[a.priority for a in c.abilities]}, "
-                #         f"delays={[a.delay for a in c.abilities]}"
-                #     )
-                # print("==========================")
 
 
 def run_all():
-    speed_range = [150, 300]
-    # speed_range = [200, 300]
+    """Exhaustively explore all configs for Demytha + Donnie against UNM Demon Lord."""
+
+    speed_range = (150, 300)
     run_configuration(
         speed_range,
         [
@@ -152,19 +131,17 @@ def run_all():
 
 
 def run_some():
-    # speed_range = [150, 300]
-    speed_range = [250, 300]
+    """Run simulations with some fixed configs and a subset of variable DPS characters."""
 
+    speed_range = (250, 300)
     fixed = [
         DEMYTHA.to_config(speed=257, priorities=[1, 3, 2], delays=[0, 1, 0]),
-        # DONNIE.to_config(speed=184, priorities=[1, 3, 2], delays=[0, 0, 0]),
         DONNIE_MINE.to_config(speed=188, priorities=[1, 3, 2], delays=[0, 0, 0]),
     ]
 
     run_variable_configs(
         speed_range,
         fixed,
-        # [DPS_1, DPS_2, DPS_3],
         [DPS_1, DPS_2],
         DEMON_LORD_UNM,
         DEMON_LORD_TURN_LIMIT,
@@ -172,9 +149,11 @@ def run_some():
 
 
 def run_some_selections():
+    """Explore multiple fixed Demytha/Donnie speed selections with DPS variations."""
+
     demytha_speeds = [254, 283]
     donnie_speeds = [184, 189]
-    speed_range = [150, 200]  # donnie mine
+    speed_range = [150, 200]
 
     fixed = []
     for demytha_speed in range(demytha_speeds[0], demytha_speeds[1] + 1):
@@ -188,7 +167,7 @@ def run_some_selections():
 
     for fixed_selection in tqdm(fixed):
         run_variable_configs(
-            [speed_range[0], speed_range[1] + 1],
+            (speed_range[0], speed_range[1] + 1),
             fixed_selection,
             [DPS_1, DPS_2, DPS_3],
             DEMON_LORD_UNM,
@@ -197,8 +176,10 @@ def run_some_selections():
 
 
 def run_some_selections_fast():
+    """Run faster search by fixing DPS1/DPS2 in a narrow speed range and only varying DPS3."""
+
     dps_speed_range = [264, 274]
-    speed_range = [0, 400]  # donnie mine
+    speed_range = [0, 400]
 
     fixed = []
     for dps_1_speed in range(dps_speed_range[0], dps_speed_range[1] + 1):
@@ -214,7 +195,7 @@ def run_some_selections_fast():
 
     for fixed_selection in tqdm(fixed):
         run_variable_configs(
-            [speed_range[0], speed_range[1] + 1],
+            (speed_range[0], speed_range[1] + 1),
             fixed_selection,
             [DPS_3],
             DEMON_LORD_UNM,

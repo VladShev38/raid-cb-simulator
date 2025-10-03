@@ -284,14 +284,12 @@ def test():
         #     DEACON.to_config(speed=198, priorities=[1, 2, 3], delays=[0, 0, 0]),
         #     DPS.to_config(speed=180, priorities=[1]),
         # ],
-
         # # Spreadsheet
         # characters=[
         #     DEMYTHA.to_config(speed=219, priorities=[1, 2, 3], delays=[0, 0, 0]),
         #     DONNIE.to_config(speed=224, priorities=[1, 3, 2], delays=[0, 1, 1]),
         #     DPS.to_config(speed=220, priorities=[1]),
         # ],
-
         # Solution 1?
         # characters=[
         #     DEMYTHA.to_config(speed=254, priorities=[1, 3, 2], delays=[0, 1, 0]),
@@ -300,7 +298,6 @@ def test():
         #     DPS_2.to_config(speed=187, priorities=[1]),  # working speeds: 176-178, 277-285
         #     DPS_3.to_config(speed=180, priorities=[1]),  # working speeds: 176-178, 277-285
         # ],
-
         # # In-game test 1
         # characters=[
         #     DEMYTHA.to_config(speed=257, priorities=[1, 3, 2], delays=[0, 1, 0]),
@@ -309,7 +306,6 @@ def test():
         #     DPS_2.to_config(speed=184, priorities=[1]),  # mikey
         #     DPS_3.to_config(speed=189, priorities=[1]),  # anax
         # ],
-
         # In-game test 2
         # characters=[
         #     DONNIE_MINE.to_config(speed=188, priorities=[1, 3, 2], delays=[0, 0, 0]),
@@ -318,7 +314,6 @@ def test():
         #     DPS_2.to_config(speed=185, priorities=[1]),  # akemtum
         #     DPS_3.to_config(speed=189, priorities=[1]),  # anax
         # ],
-
         # In-game test 3
         # characters=[
         #     # DONNIE_MINE.to_config(speed=188-0.0888+1, priorities=[1, 3, 2], delays=[0, 0, 0]),
@@ -330,7 +325,6 @@ def test():
         #     # DPS_3.to_config(speed=181.35, priorities=[1]),  # anax
         #     DPS_3.to_config(speed=180.52+1, priorities=[1]),  # sanguinia
         # ],
-
         # # Ikuyo Kita
         # characters=[
         #     DONNIE.to_config(speed=98 * 1.12 + 78, priorities=[1, 3, 2], delays=[0, 0, 0]),
@@ -339,7 +333,6 @@ def test():
         #     DPS_2.to_config(speed=99 * (1 + (0.12 * 1.15)) + 67, priorities=[1]),  # alice - LoS
         #     DPS_3.to_config(speed=95 * (1 + (0.1 * 1.15)) + 80, priorities=[1]),  # orn - LoS
         # ],
-
         # Ikuyo Kita - testing
         characters=[
             DONNIE.to_config(speed=98 * 1.12 + 78 + 1, priorities=[1, 3, 2], delays=[0, 0, 0]),
@@ -355,54 +348,6 @@ def test():
         print("Run successful")
     else:
         print(f"Run failed at demon lord turn {turns}")
-
-
-def run_configuration(speed_ranges, characters):
-    speeds = range(*speed_ranges)
-    total_size = len(speeds) ** len(characters)
-    max_turns = 0
-
-    for speeds in tqdm(itertools.product(speeds, repeat=len(characters)), total=total_size):
-        simulated_characters = [deepcopy(c) for c in characters]
-        assert len(simulated_characters) == len(speeds)
-        for i in range(len(speeds)):
-            simulated_characters[i].speed = speeds[i]
-
-        turns = simulate(
-            characters=simulated_characters,
-            demon_lord=DEMON_LORD_UNM,
-        )
-        if turns > max_turns:
-            max_turns = turns
-            print(f"New high found: {max_turns}, at {speeds=}")
-        if turns == DEMON_LORD_TURN_LIMIT:
-            print(f"fNew solution found at {speeds=}")
-
-
-def run():
-    speed_ranges = [150, 400, 3]
-
-    print("\n\nHeiress run")
-    run_configuration(
-        speed_ranges,
-        [
-            DEMYTHA.to_config(speed=0, priorities=[1, 2, 3], delays=[0, 0, 0]),
-            DONNIE.to_config(speed=0, priorities=[1, 3, 2], delays=[0, 1, 1]),
-            DPS_1.to_config(speed=0, priorities=[1]),
-            HEIRESS.to_config(speed=0, priorities=[1, 2], delays=[0, 1]),
-        ],
-    )
-
-    print("\n\nDoomscreech run")
-    run_configuration(
-        speed_ranges,
-        [
-            DEMYTHA.to_config(speed=0, priorities=[1, 2, 3], delays=[0, 0, 0]),
-            DONNIE.to_config(speed=0, priorities=[1, 3, 2], delays=[0, 1, 1]),
-            DPS_1.to_config(speed=0, priorities=[1]),
-            DOOMSCREECH.to_config(speed=0, priorities=[1, 3, 2], delays=[0, 2, 1]),
-        ],
-    )
 
 
 if __name__ == "__main__":
