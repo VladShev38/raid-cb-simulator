@@ -18,7 +18,7 @@ If the script runs, your installation was successful.
 
 # Testing a configuration
 
-`raid_cb_simulator/simulator.py` is used to run individual configurations. Edit the `test()` function and set up the configuration you want to test. Several example configs already exist as reference. Once you're ready, you can test by running:
+`raid_cb_simulator/simulator.py` is used to run individual team configurations. Edit the `test()` function and set up the configuration you want to test. Several example configs already exist as reference. Once you're ready, you can test by running:
 
 ```commandline
 python .\raid_cb_simulator\simulator.py
